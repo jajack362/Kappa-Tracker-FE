@@ -1,4 +1,5 @@
-import {Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
+"use client";
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import Stepper from "@/components/Stepper";
 import { Wrench, ExternalLink } from "lucide-react";
@@ -8,36 +9,47 @@ import Image from 'next/image';
 
 
 export default function QuestItemsBox({ questItem, max }: { questItem: QuestItem, max: number }) {
+    const [value, setValue] = useState<number>(0);
+    const [checked, setChecked] = useState<boolean>(false);
+    const [prevValue, setPrevValue] = useState<number>(0);
 
-    const [value, setValue] = useState<number>(() => {
-        if (typeof window !== "undefined") {
-            const stored = localStorage.getItem("stepperValue" + questItem.id);
-            const parsed = stored ? parseInt(stored) : 0;
-            return isNaN(parsed) ? 0 : parsed;
-        }
-        return 0;
-    });
 
-    const [checked, setChecked] = useState<boolean>(() => {
-        if (typeof window !== "undefined") {
-            return localStorage.getItem("handedIn" + questItem.id) === "true";
-        }
-        return false;
-    });
+    // Get local storage on load
+    useEffect(() => {
+        const stored = localStorage.getItem("stepperValue" + questItem.id);
+        const parsed = stored ? parseInt(stored) : 0;
+        setValue(isNaN(parsed) ? 0 : parsed);
 
-    const handleCheckboxChange = (checked: boolean) => {
-        setChecked(checked);
-        if (checked) {
-            setValue(max);
-        } else {
-            setValue(0); // or keep it unchanged if you prefer
-        }
-    };
+        const prev = localStorage.getItem("stepperPrevValue" + questItem.id);
+        const parsedPrev = prev ? parseInt(prev) : 0;
+        setPrevValue(isNaN(parsedPrev) ? 0 : parsedPrev);
 
+        setChecked(localStorage.getItem("handedIn" + questItem.id) === "true");
+
+    }, [questItem.id]);
+
+    //update local storages
     useEffect(() => {
         localStorage.setItem("handedIn" + questItem.id, String(checked));
     }, [checked, questItem.id]);
 
+    useEffect(() => {
+        localStorage.setItem("stepperValue" + questItem.id, String(value));
+    }, [value, questItem.id]);
+
+    useEffect(() => {
+        localStorage.setItem("stepperPrevValue" + questItem.id, String(prevValue));
+    }, [prevValue, questItem.id]);
+
+    const handleCheckboxChange = (isChecked: boolean) => {
+        setChecked(isChecked);
+        if (isChecked) {
+            setPrevValue(value);
+            setValue(max);
+        } else {
+            setValue(prevValue);
+        }
+    };
 
     return (
         <div>
@@ -83,14 +95,14 @@ export default function QuestItemsBox({ questItem, max }: { questItem: QuestItem
                                 <Image
                                     src={questItem.item.imageLink}
                                     alt="Custom Image"
-                                    width={50} // pixels
-                                    height={50} // pixels
+                                    width={50}
+                                    height={50}
                                     style={{ objectFit: "contain" }}
                                 />
                             </a>
                             <div className="flex flex-col gap-2">
                                 <div className="flex items-center">
-                                    <Stepper id={questItem.id} max={questItem.quantity} value={(checked ? questItem.quantity : value)} setValue={setValue} disabled={checked}/>
+                                    <Stepper min={0} max={questItem.quantity} value={(checked ? questItem.quantity : value)} setValue={setValue} disabled={checked}/>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <label htmlFor="handed-in" className="text-sm">

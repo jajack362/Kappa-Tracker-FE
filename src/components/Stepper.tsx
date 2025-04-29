@@ -1,19 +1,13 @@
-import {useEffect, useState} from "react";
-
-export default function Stepper({ min = 0, max = 10, step = 1, id = 0, setValue, value, disabled}) {
-    useEffect(() => {
-        localStorage.setItem("stepperValue" + id, String(value));
-    }, [value, id]);
-
+export default function Stepper({ min, max, setValue, value, disabled}: { min: number, max: number, disabled: boolean, setValue: (value: number) => void, value: number }) {
     const increment = () => {
         if (value < max) {
-            setValue(value + step);
+            setValue(value + 1);
         }
     };
 
     const decrement = () => {
         if (value > min) {
-            setValue(value - step);
+            setValue(value - 1);
         }
     };
 

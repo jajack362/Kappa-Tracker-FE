@@ -3,12 +3,12 @@ declare type QuestItem = {
     quest: {
         id: number;
         name: string;
-        levelRequired: number;
+        levelRequired: number | null;
         wikiLink: string;
         trader: {
             id: number;
             name: string;
-        };
+        }
     };
     item: {
         id: number;
@@ -22,3 +22,9 @@ declare type QuestItem = {
     };
     quantity: number;
 };
+
+declare type TraderQuestItem = {
+    traderId: number;
+    traderName: string;
+    questItems: QuestItem[];
+}
